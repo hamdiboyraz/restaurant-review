@@ -34,7 +34,7 @@ public class Review {
     private LocalDateTime lastEdited;
 
     @Field(type = FieldType.Nested)
-    private List<Photo> photos = new ArrayList<>();
+    private List<Photo> photos = new ArrayList<>(); // to prevent null pointer exceptions.
 
     @Field(type = FieldType.Nested)
     private User writtenBy;
