@@ -6,12 +6,14 @@ import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -69,7 +71,22 @@ public class FileSystemStorageService implements StorageService {
     }
 
     @Override
-    public Optional<Resource> loadAsResource(String id) {
-        return Optional.empty();
+    public Optional<Resource> loadAsResource(String filename) {
+        try {
+            // Resolve the file path relative to our root location
+            Path file = rootLocation.resolve(filename);
+
+            // Create a Resource object from the file path
+            Resource resource = new UrlResource(file.toUri());
+
+            // Check if the resource exists and is readable
+            if (resource.exists() || resource.isReadable()) {
+                return Optional.of(resource);
+            } else {
+                return Optional.empty();
+            }
+        } catch (MalformedURLException e) {
+            log.warn("Could not read file: " + filename, e);
+            return Optional.empty();        }
     }
 }
