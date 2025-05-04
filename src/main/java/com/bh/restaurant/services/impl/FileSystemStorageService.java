@@ -38,32 +38,30 @@ public class FileSystemStorageService implements StorageService {
 
     @Override
     public String store(MultipartFile file, String filename) {
-        try {
-            // Check for empty files
-            if (file.isEmpty()) {
-                throw new StorageException("Failed to store empty file");
-            }
+        // Check for empty files
+        if (file.isEmpty()) {
+            throw new StorageException("Failed to store empty file");
+        }
 
-            // Create the final filename with extension
-            String extension = StringUtils.getFilenameExtension(file.getOriginalFilename());
-            String finalFilename = filename + "." + extension;
+        // Create the final filename with extension
+        String extension = StringUtils.getFilenameExtension(file.getOriginalFilename());
+        String finalFilename = filename + "." + extension;
 
-            // Resolve and normalize the destination path
-            Path destinationFile = this.rootLocation
-                    .resolve(Paths.get(finalFilename)) // Resolve the filename to the root location
-                    .normalize() // Normalize the path to remove any redundant elements
-                    .toAbsolutePath(); // Convert to an absolute path
+        // Resolve and normalize the destination path
+        Path destinationFile = this.rootLocation
+                .resolve(Paths.get(finalFilename)) // Resolve the filename to the root location
+                .normalize() // Normalize the path to remove any redundant elements
+                .toAbsolutePath(); // Convert to an absolute path
 
-            // Security check to prevent directory traversal
-            if (!destinationFile.getParent().equals(this.rootLocation.toAbsolutePath())) {
-                throw new StorageException("Cannot store file outside current directory");
-            }
+        // Security check to prevent directory traversal
+        if (!destinationFile.getParent().equals(this.rootLocation.toAbsolutePath())) {
+            throw new StorageException("Cannot store file outside current directory");
+        }
 
-            // Copy the file to the destination
-            // Use try-with-resources to ensure the InputStream is closed after use
-            try (InputStream inputStream = file.getInputStream()) {
-                Files.copy(inputStream, destinationFile, StandardCopyOption.REPLACE_EXISTING);
-            }
+        // Copy the file to the destination
+        // Use try-with-resources to ensure the InputStream is closed after use
+        try (InputStream inputStream = file.getInputStream()) {
+            Files.copy(inputStream, destinationFile, StandardCopyOption.REPLACE_EXISTING);
             return finalFilename;
         } catch (IOException e) {
             throw new StorageException("Failed to store file", e);
