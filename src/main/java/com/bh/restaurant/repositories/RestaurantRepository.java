@@ -5,6 +5,6 @@ import org.springframework.data.elasticsearch.repository.ElasticsearchRepository
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class RestaurantRepository extends ElasticsearchRepository<Restaurant, String> {
+public interface RestaurantRepository extends ElasticsearchRepository<Restaurant, String> {
     // TODO: Custom queries
 }
