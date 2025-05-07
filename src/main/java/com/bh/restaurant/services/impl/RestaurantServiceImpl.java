@@ -76,7 +76,7 @@ public class RestaurantServiceImpl implements RestaurantService {
         if (latitude != null && longitude != null && radius != null) {
             return restaurantRepository.findByLocationNear(latitude, longitude, radius, pageable);
         }
-        
+
         // Otherwise we'll perform a non-location search
         return restaurantRepository.findAll(pageable);
     }
