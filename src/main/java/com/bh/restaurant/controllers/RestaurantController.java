@@ -3,16 +3,16 @@ package com.bh.restaurant.controllers;
 import com.bh.restaurant.domain.RestaurantCreateUpdateRequest;
 import com.bh.restaurant.domain.dtos.RestaurantCreateUpdateRequestDto;
 import com.bh.restaurant.domain.dtos.RestaurantDto;
+import com.bh.restaurant.domain.dtos.RestaurantSummaryDto;
 import com.bh.restaurant.domain.entities.Restaurant;
 import com.bh.restaurant.mappers.RestaurantMapper;
 import com.bh.restaurant.services.RestaurantService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(path = "/api/restaurants")
@@ -29,5 +29,25 @@ public class RestaurantController {
         Restaurant restaurant = restaurantService.createRestaurant(restaurantCreateUpdateRequest);
         RestaurantDto createdRestaurantDto = restaurantMapper.toRestaurantDto(restaurant);
         return ResponseEntity.ok(createdRestaurantDto);
+    }
+
+    @GetMapping
+    public Page<RestaurantSummaryDto> searchRestaurants(
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) Float minRating,
+            @RequestParam(required = false) Float latitude,
+            @RequestParam(required = false) Float longitude,
+            @RequestParam(required = false) Float radius,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        Page<Restaurant> searchResult = restaurantService.searchRestaurants(
+                q,
+                minRating,
+                latitude,
+                longitude,
+                radius,
+                PageRequest.of(page - 1, size)
+        );
+        return searchResult.map(restaurantMapper::toSummaryDto);
     }
 }

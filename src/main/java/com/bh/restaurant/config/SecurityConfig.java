@@ -18,6 +18,8 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.GET, "/api/photos/**").permitAll() // GET istekleri için kimlik doğrulaması gerekmez
+                        // Allow public access to restaurant search
+                        .requestMatchers("/api/restaurants/**").permitAll()
                         .anyRequest().authenticated() // Tüm istekler kimlik doğrulaması gerektirir
                 )
                 .oauth2ResourceServer(oauth2 ->
