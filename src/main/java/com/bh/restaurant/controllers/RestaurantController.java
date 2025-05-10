@@ -23,10 +23,10 @@ public class RestaurantController {
     private final RestaurantMapper restaurantMapper;
 
     @PostMapping
-    public ResponseEntity<RestaurantDto> createRestaurant(@Valid @RequestBody RestaurantCreateUpdateRequestDto request) {
-        RestaurantCreateUpdateRequest restaurantCreateUpdateRequest = restaurantMapper
-                .toRestaurantCreateUpdateRequest(request);
-        Restaurant restaurant = restaurantService.createRestaurant(restaurantCreateUpdateRequest);
+    public ResponseEntity<RestaurantDto> createRestaurant(@Valid @RequestBody RestaurantCreateUpdateRequestDto requestDto) {
+        RestaurantCreateUpdateRequest request = restaurantMapper
+                .toRestaurantCreateUpdateRequest(requestDto);
+        Restaurant restaurant = restaurantService.createRestaurant(request);
         RestaurantDto createdRestaurantDto = restaurantMapper.toRestaurantDto(restaurant);
         return ResponseEntity.ok(createdRestaurantDto);
     }
@@ -56,5 +56,21 @@ public class RestaurantController {
         return restaurantService.getRestaurant(restaurantId)
                 .map(restaurant -> ResponseEntity.ok(restaurantMapper.toRestaurantDto(restaurant)))
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/{restaurantId}")
+    public ResponseEntity<RestaurantDto> updateRestaurant(
+            @PathVariable String restaurantId,
+            @Valid @RequestBody RestaurantCreateUpdateRequestDto requestDto) {
+
+        // Convert the DTO to domain object
+        RestaurantCreateUpdateRequest request =
+                restaurantMapper.toRestaurantCreateUpdateRequest(requestDto);
+
+        // Update the restaurant
+        Restaurant updated = restaurantService.updateRestaurant(restaurantId, request);
+
+        // Convert and return the updated restaurant
+        return ResponseEntity.ok(restaurantMapper.toRestaurantDto(updated));
     }
 }

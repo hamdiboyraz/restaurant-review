@@ -8,7 +8,7 @@ import org.springframework.data.domain.Pageable;
 import java.util.Optional;
 
 public interface RestaurantService {
-    Restaurant createRestaurant(RestaurantCreateUpdateRequest restaurant);
+    Restaurant createRestaurant(RestaurantCreateUpdateRequest request);
 
     Page<Restaurant> searchRestaurants(
             String query,
@@ -20,4 +20,6 @@ public interface RestaurantService {
     );
 
     Optional<Restaurant> getRestaurant(String id);
+
+    Restaurant updateRestaurant(String id, RestaurantCreateUpdateRequest request);
 }

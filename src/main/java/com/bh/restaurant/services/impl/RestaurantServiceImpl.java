@@ -5,6 +5,7 @@ import com.bh.restaurant.domain.RestaurantCreateUpdateRequest;
 import com.bh.restaurant.domain.entities.Address;
 import com.bh.restaurant.domain.entities.Photo;
 import com.bh.restaurant.domain.entities.Restaurant;
+import com.bh.restaurant.exceptions.RestaurantNotFoundException;
 import com.bh.restaurant.repositories.RestaurantRepository;
 import com.bh.restaurant.services.GeoLocationService;
 import com.bh.restaurant.services.RestaurantService;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -85,5 +87,35 @@ public class RestaurantServiceImpl implements RestaurantService {
     @Override
     public Optional<Restaurant> getRestaurant(String id) {
         return restaurantRepository.findById(id);
+    }
+
+    @Override
+    public Restaurant updateRestaurant(String id, RestaurantCreateUpdateRequest request) {
+        // First, verify the restaurant exists
+        Restaurant existingRestaurant = getRestaurant(id)
+                .orElseThrow(() -> new RestaurantNotFoundException("Restaurant with ID does not exist: " + id));
+
+        // Get new geo coordinates based on the updated address
+        GeoLocation newGeoLocation = geoLocationService.geoLocate(request.getAddress());
+        GeoPoint newGeoPoint = new GeoPoint(newGeoLocation.getLatitude(), newGeoLocation.getLongitude());
+
+        // Convert photo URLs to Photo entities
+        List<Photo> photos = request.getPhotoIds().stream().map(photoUrl ->
+                Photo.builder()
+                        .url(photoUrl)
+                        .uploadDate(LocalDateTime.now())
+                        .build()
+        ).collect(Collectors.toList());
+
+        // Update all fields except averageRating
+        existingRestaurant.setName(request.getName());
+        existingRestaurant.setCuisineType(request.getCuisineType());
+        existingRestaurant.setContactInformation(request.getContactInformation());
+        existingRestaurant.setAddress(request.getAddress());
+        existingRestaurant.setGeoLocation(newGeoPoint);
+        existingRestaurant.setOperatingHours(request.getOperatingHours());
+        existingRestaurant.setPhotos(photos);
+
+        return restaurantRepository.save(existingRestaurant);
     }
 }
