@@ -11,5 +11,5 @@ import java.util.Optional;
 public interface ReviewService {
     Review createReview(User author, String restaurantId, ReviewCreateUpdateRequest review);
     Page<Review> listReviews(String restaurantId, Pageable pageable);
-    Optional<Review> getRestaurantReview(String restaurantId, String reviewId);
+    Optional<Review> getReview(String restaurantId, String reviewId);
 }

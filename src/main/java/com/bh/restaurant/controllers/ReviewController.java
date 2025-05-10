@@ -61,7 +61,7 @@ public class ReviewController {
             @PathVariable("restaurantId") String restaurantId,
             @PathVariable("reviewId") String reviewId) {
         return reviewService
-                .getRestaurantReview(restaurantId, reviewId)
+                .getReview(restaurantId, reviewId)
                 .map(reviewMapper::toDto)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.noContent().build());

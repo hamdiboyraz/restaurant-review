@@ -120,7 +120,7 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public Optional<Review> getRestaurantReview(String restaurantId, String reviewId) {
+    public Optional<Review> getReview(String restaurantId, String reviewId) {
         Restaurant restaurant = getRestaurantOrThrow(restaurantId);
         return restaurant.getReviews().stream()
                 .filter(r -> reviewId.equals(r.getId()))
