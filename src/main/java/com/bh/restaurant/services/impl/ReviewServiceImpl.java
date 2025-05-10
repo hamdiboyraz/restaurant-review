@@ -122,9 +122,68 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     public Optional<Review> getReview(String restaurantId, String reviewId) {
         Restaurant restaurant = getRestaurantOrThrow(restaurantId);
+        return getReviewFromRestaurant(reviewId, restaurant);
+    }
+
+    private static Optional<Review> getReviewFromRestaurant(String reviewId, Restaurant restaurant) {
         return restaurant.getReviews().stream()
                 .filter(r -> reviewId.equals(r.getId()))
                 .findFirst();
+    }
+
+    @Override
+    public Review updateReview(User author, String restaurantId, String reviewId,
+                               ReviewCreateUpdateRequest review) {
+
+        // Get the restaurant or throw if not found
+        Restaurant restaurant = getRestaurantOrThrow(restaurantId);
+
+        String authorId = author.getId();
+
+        // Find the review
+        Review existingReview = getReviewFromRestaurant(reviewId, restaurant)
+                .orElseThrow(() -> new ReviewNotAllowedException("Review not found"));
+
+        // Check if the review was written by the current user
+        if (!existingReview.getWrittenBy().getId().equals(authorId)) {
+            throw new ReviewNotAllowedException("Cannot update another user's review");
+        }
+
+        // Check if it's within 48 hours since the review was posted
+        if (LocalDateTime.now().isAfter(existingReview.getDatePosted().plusHours(48))) {
+            throw new ReviewNotAllowedException("Review can no longer be edited (48-hour limit exceeded)");
+        }
+
+        // Update review content
+        existingReview.setContent(review.getContent());
+        existingReview.setRating(review.getRating());
+        existingReview.setLastEdited(LocalDateTime.now());
+
+        // Update photos
+        existingReview.setPhotos(review.getPhotoIds().stream()
+                .map(url -> {
+                    Photo photo = new Photo();
+                    photo.setUrl(url);
+                    photo.setUploadDate(LocalDateTime.now());
+                    return photo;
+                }).collect(Collectors.toList()));
+
+        // Update the restaurant's reviews list excluding the old review
+        List<Review> updatedReviews = restaurant.getReviews().stream()
+                .filter(r -> !reviewId.equals(r.getId()))
+                .collect(Collectors.toList());
+
+        // Add the updated review back to the list
+        updatedReviews.add(existingReview);
+        restaurant.setReviews(updatedReviews);
+
+        // Update the restaurant's average rating
+        updateRestaurantAverageRating(restaurant);
+
+        // Save the restaurant with the updated review
+        restaurantRepository.save(restaurant);
+
+        return existingReview;
     }
 
     private void updateRestaurantAverageRating(Restaurant restaurant) {
